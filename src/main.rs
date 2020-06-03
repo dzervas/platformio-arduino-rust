@@ -1,28 +1,32 @@
+#![feature(start)]
 #![no_std]
 #![no_main]
 
-#![allow(non_upper_case_globals)]
-#![allow(non_camel_case_types)]
 #![allow(non_snake_case)]
+#![allow(non_camel_case_types)]
+#![allow(non_upper_case_globals)]
 
-include!(concat!(env!("OUT_DIR"), "/arduino.rs"));
+extern crate panic_halt;
+#[allow(dead_code)]
+mod pio_rust;
 
-// pick a panicking behavior
-extern crate panic_halt; // you can put a breakpoint on `rust_begin_unwind` to catch panics
-extern crate libc;
-// extern crate panic_abort; // requires nightly
-// extern crate panic_itm; // logs messages over ITM; requires ITM support
-// extern crate panic_semihosting; // logs messages to the host stderr; requires a debugger
+include!("platformio.rs");
+// mod platformio;
+// use crate::platformio::{pinMode, digitalWrite};
 
 #[link(name = "FrameworkArduino")]
-extern {
-    fn digitalWrite(ulPin: u32, ulVal: u32);
-    fn pinMode(ulPin: u32, ulMode: u32);
-}
+// extern {
+//     fn digitalWrite(ulPin: u32, ulVal: u32);
+//     fn pinMode(ulPin: u32, ulMode: u32);
+// }
 
+#[start]
+#[no_mangle]
 unsafe fn setup() {
     pinMode(0, 1);
     digitalWrite(0, 1);
 }
 
+#[allow(dead_code)]
+#[no_mangle]
 fn r#loop() {}

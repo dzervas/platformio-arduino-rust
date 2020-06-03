@@ -7,7 +7,7 @@ version = "0.1.0"
 
 [dependencies]
 panic-halt = "*"
-libc = "*"
+# libc = { version = "0.2.71", default-features = false }
 
 [build-dependencies]
 bindgen = "*"
