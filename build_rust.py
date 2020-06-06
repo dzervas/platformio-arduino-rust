@@ -2,6 +2,7 @@ import os
 from os.path import join
 from glob import glob
 from pathlib import Path
+from SCons.Script import Builder
 
 # PlatformIO specific
 Import("env")
@@ -21,6 +22,9 @@ def ignore_main_cpp(node):
 	# defines = f' -D{" -D".join(defines_list)}'
 	defines = env.subst(env.get("_CPPDEFFLAGS"))
 
+	# -target should reflect cargo's target. Ex. thumbv7m-none-eabi becomes armv7m while thumbv7m-none-eabihf becomes armv7em
+	# Floating point does not make a difference in target in clang, but it does in -mfloat-abi
+	# -mfloat-abi=soft for software and hard for hardware. There's also softfp (?)
 	env.Execute("""bindgen --ctypes-prefix pio_rust --use-core \
 				   --blacklist-item FP_NAN \
 				   --blacklist-item FP_INFINITE \
@@ -32,24 +36,17 @@ def ignore_main_cpp(node):
 				   --blacklist-item std::* \
 				   --blacklist-item SVCALL \
 				   -o src/platformio.rs \
-				   /home/dzervas/.platformio/packages/framework-arduinoadafruitnrf52/cores/nRF5/Arduino.h -- -target armv7em """ + defines + " " + headers)
+				   /home/dzervas/.platformio/packages/framework-arduinoststm32-maple/STM32F1/cores/maple/Arduino.h -- -x c++ -mfloat-abi=soft -target armv7m """ + defines + " " + headers)
 
-	# Link compiled libraries to Rust
-	# libraries_list = []
-
-	# for node_list in env.get("LIBS"):
-	# 	if node_list  == "m": continue
-
-	# 	for node_file in node_list:
-	# 		libraries_list.append(node_file.get_abspath())
-
-	# libraries = f' -L {" -L ".join(libraries_list)}'
 	libraries_path = env.subst(env.get("_LIBDIRFLAGS"))
 
 	env.Append(RUSTFLAGS=libraries_path)
+	print(env.get("RUSTFLAGS"))
 
-	env.Execute("cargo build")
+	env.Execute("cargo build --release")
 
 	return node
 
+env.get("BUILDERS")["Cargo"] = Builder(action=env.VerboseAction("cargo build --release", "Cargo Building $TARGET"),
+									   suffix=".rs")
 env.AddBuildMiddleware(ignore_main_cpp, "*src/main.cpp*")
