@@ -25,25 +25,31 @@ def ignore_main_cpp(node):
 	# -target should reflect cargo's target. Ex. thumbv7m-none-eabi becomes armv7m while thumbv7m-none-eabihf becomes armv7em
 	# Floating point does not make a difference in target in clang, but it does in -mfloat-abi
 	# -mfloat-abi=soft for software and hard for hardware. There's also softfp (?)
+				#    --blacklist-item std::* \
 	env.Execute("""bindgen --ctypes-prefix pio_rust --use-core \
 				   --blacklist-item FP_NAN \
 				   --blacklist-item FP_INFINITE \
 				   --blacklist-item FP_ZERO \
 				   --blacklist-item FP_NORMAL \
 				   --blacklist-item FP_SUBNORMAL \
+				   --blacklist-item SVCALL \
 				   --blacklist-function setup \
 				   --blacklist-function loop \
-				   --blacklist-item std::* \
-				   --blacklist-item SVCALL \
 				   -o src/platformio.rs \
-				   /home/dzervas/.platformio/packages/framework-arduinoststm32-maple/STM32F1/cores/maple/Arduino.h -- -x c++ -mfloat-abi=soft -target armv7m """ + defines + " " + headers)
+				   /home/dzervas/.platformio/packages/framework-arduinoststm32-maple/STM32F1/cores/maple/Arduino.h -- \
+				   -x c++ \
+				   -mfloat-abi=soft \
+				   -mthumb \
+				   -target armv7m """ + defines + " " + headers)
 
 	libraries_path = env.subst(env.get("_LIBDIRFLAGS"))
 
-	env.Append(RUSTFLAGS=libraries_path)
-	print(env.get("RUSTFLAGS"))
+	env.Append(RUSTFLAGS=libraries_path + " -L" + env.subst(env.get("BUILD_DIR")))
+	env.Append(RUSTFLAGS=libraries_path + " -L" + env.subst(env.get("BUILD_DIR")))
 
-	env.Execute("cargo build --release")
+	# env.Execute("cargo build --release -v")
+	print(env.Dump())
+	print(env.subst(env.get("SHLINKCOM")))
 
 	return node
 
