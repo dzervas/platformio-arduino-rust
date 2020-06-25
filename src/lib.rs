@@ -22,7 +22,7 @@ pub extern "C" fn r#loop() {
         digitalWrite(19, 1);
         delay(2000);
         digitalWrite(19, 0);
-        delay(1000);
+        delay(100);
     }
 }
 

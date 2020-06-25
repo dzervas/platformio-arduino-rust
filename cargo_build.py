@@ -22,6 +22,7 @@ def ignore_main_cpp(node):
 	# -target should reflect cargo's target. Ex. thumbv7m-none-eabi becomes armv7m while thumbv7m-none-eabihf becomes armv7em
 	# Floating point does not make a difference in target in clang, but it does in -mfloat-abi
 	# -mfloat-abi=soft for software and hard for hardware. There's also softfp (?)
+	# I have no idea why the nrf52, while being hard requires soft ABI. Gotta check that at some point
 	env.Execute("""bindgen --ctypes-prefix pio_rust --use-core \
 				   --blacklist-item std::* \
 				   --blacklist-item FP_NAN \
@@ -37,17 +38,9 @@ def ignore_main_cpp(node):
 				   -mfloat-abi=soft \
 				   -target armv7em """ + defines + " " + headers)
 
-	libraries_path = env.subst(env.get("_LIBDIRFLAGS"))
+	env.Execute("cargo build --release --target=thumbv7em-none-eabihf -v")
+	env.Append(PIOBUILDFILES=["$PROJECT_DIR/target/thumbv7em-none-eabihf/release/deps/ardurust-platformio.o"])
 
-	env.Append(RUSTFLAGS=libraries_path + " -L" + env.subst(env.get("BUILD_DIR")))
-	env.Append(RUSTFLAGS=libraries_path + " -L" + env.subst(env.get("BUILD_DIR")))
+	return None
 
-	# env.Execute("cargo build --release -v")
-	# print(env.Dump())
-	# print(env.subst(env.get("SHLINKCOM")))
-
-	return node
-
-# env.get("BUILDERS")["Cargo"] = Builder(action=env.VerboseAction("cargo build --release", "Cargo Building $TARGET"),
-									#    suffix=".rs")
 env.AddBuildMiddleware(ignore_main_cpp, "*src/main.cpp*")
