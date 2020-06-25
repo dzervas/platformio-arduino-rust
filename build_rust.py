@@ -36,9 +36,8 @@ def ignore_main_cpp(node):
 				   --blacklist-function setup \
 				   --blacklist-function loop \
 				   -o src/platformio.rs \
-				   /home/dzervas/.platformio/packages/framework-arduinoststm32-maple/STM32F1/cores/maple/Arduino.h -- \
-				   -x c++ \
-				   -mfloat-abi=soft \
+				   /home/dzervas/.platformio/packages/framework-arduinoadafruitnrf52/cores/nRF5/Arduino.h -- \
+				   -mfloat-abi=hard \
 				   -mthumb \
 				   -target armv7m """ + defines + " " + headers)
 
@@ -48,8 +47,8 @@ def ignore_main_cpp(node):
 	env.Append(RUSTFLAGS=libraries_path + " -L" + env.subst(env.get("BUILD_DIR")))
 
 	# env.Execute("cargo build --release -v")
-	print(env.Dump())
-	print(env.subst(env.get("SHLINKCOM")))
+	# print(env.Dump())
+	# print(env.subst(env.get("SHLINKCOM")))
 
 	return node
 

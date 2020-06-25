@@ -1,7 +1,7 @@
-[target.thumbv7m-none-eabi]
+# [target.thumbv7m-none-eabi]
 # uncomment this to make `cargo run` execute programs on QEMU
 # runner = "qemu-system-arm -cpu cortex-m3 -machine lm3s6965evb -nographic -semihosting-config enable=on,target=native -kernel"
-linker = "arm-none-eabi-gcc"
+# linker = "arm-none-eabi-gcc"
 
 [target.'cfg(all(target_arch = "arm", target_os = "none"))']
 # uncomment ONE of these three option to make `cargo run` start a GDB session
@@ -12,7 +12,7 @@ linker = "arm-none-eabi-gcc"
 
 rustflags = [
   # LLD (shipped with the Rust toolchain) is used as the default linker
-  # "-C", "link-arg=-Tlink.x",
+  # "-C", "link-arg=-Tnrf52832_s132_v6.ld",
   # "-C", "link-arg=-Tbootloader_20.ld",
 
   # if you run into problems with LLD switch to the GNU linker by commenting out
@@ -22,15 +22,19 @@ rustflags = [
   # if you need to link to pre-compiled C libraries provided by a C toolchain
   # use GCC as the linker by commenting out both lines above and then
   # uncommenting the three lines below
-  "-C", "linker=arm-none-eabi-gcc",
-  # "-C", "link-arg=-Wl,-Tlink.x",
-  "-C", "link-arg=-Tbootloader_20.ld",
+  "-C", "linker-flavor=gcc",
+  "-C", "linker=arm-none-eabi-g++",
+  "-C", "link-arg=-Wl,-Tnrf52832_s132_v6.ld",
   "-C", "link-arg=-nostartfiles",
+
+  "-C", "soft-float=no",
+  "-C", "link-dead-code=yes",
+  "--emit", "obj",
 ]
 
 [build]
 # Pick ONE of these compilation targets
 # target = "thumbv6m-none-eabi"    # Cortex-M0 and Cortex-M0+
-target = "thumbv7m-none-eabi"    # Cortex-M3
+# target = "thumbv7m-none-eabi"    # Cortex-M3
 # target = "thumbv7em-none-eabi"   # Cortex-M4 and Cortex-M7 (no FPU)
-# target = "thumbv7em-none-eabihf" # Cortex-M4F and Cortex-M7F (with FPU)
+target = "thumbv7em-none-eabihf" # Cortex-M4F and Cortex-M7F (with FPU)

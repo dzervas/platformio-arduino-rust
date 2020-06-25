@@ -16,3 +16,4 @@ src/platformio.rs
 .cargo-ok
 .vscode
 .pio
+firmware.elf*
