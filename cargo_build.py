@@ -34,7 +34,7 @@ def ignore_main_cpp(node):
 				   --blacklist-function setup \
 				   --blacklist-function loop \
 				   -o src/platformio.rs \
-				   /home/dzervas/.platformio/packages/framework-arduinoadafruitnrf52/cores/nRF5/Arduino.h -- \
+				   """ + env.get("PROJECT_PACKAGES_DIR") +"""/framework-arduinoadafruitnrf52/cores/nRF5/Arduino.h -- \
 				   -mfloat-abi=soft \
 				   -target armv7em """ + defines + " " + headers)
 
