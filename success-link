@@ -2,10 +2,28 @@
 # Example successful compilation!
 
 # Build FirmwareArduino.a static libraries
-pio build
+pio run
 
 # Build rust library .o
 cargo build -v
 
 # Link everything together
-arm-none-eabi-g++ -o firmware.elf -T nrf52832_s132_v6.ld -Ofast -Wl,--gc-sections,--relax -mthumb --specs=nano.specs --specs=nosys.specs -Wl,--check-sections -Wl,--unresolved-symbols=report-all -Wl,--warn-common -Wl,--warn-section-align -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16 -u _printf_float /home/dzervas/Lab/ardurust/target/thumbv7em-none-eabihf/debug/deps/ardurust-69722e5bf27faf79.41kwmw16wh23254z.rcgu.o -L.pio/build/default -L/home/dzervas/.platformio/packages/framework-arduinoadafruitnrf52/cores/nRF5/linker -L/home/dzervas/.platformio/packages/framework-arduinoadafruitnrf52/cores/nRF5/linker -Wl,--start-group .pio/build/default/libFrameworkArduinoVariant.a .pio/build/default/libFrameworkArduino.a -lm -Wl,--end-group
+arm-none-eabi-g++ -o firmware.elf -T nrf52832_s132_v6.ld -Ofast \
+-Wl,--gc-sections,--relax -mthumb --specs=nano.specs --specs=nosys.specs \
+-Wl,--check-sections -Wl,--unresolved-symbols=report-all -Wl,--warn-common \
+-Wl,--warn-section-align -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16 \
+-u _printf_float \
+target/thumbv7em-none-eabihf/debug/deps/ardurust-platformio.o \
+-L.pio/build/default \
+-L"$HOME/.platformio/packages/framework-arduinoadafruitnrf52/cores/nRF5/linker" \
+-Wl,--start-group .pio/build/default/libFrameworkArduinoVariant.a \
+.pio/build/default/libFrameworkArduino.a -lm -Wl,--end-group
+
+# Minified (?)
+# arm-none-eabi-g++ -o firmware.elf -T nrf52832_s132_v6.ld \
+# -Wl,--gc-sections,--relax -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16 \
+# target/thumbv7em-none-eabihf/debug/deps/ardurust-429c0563ff133e1c.o \
+# -L.pio/build/default \
+# -L/home/dzervas/.platformio/packages/framework-arduinoadafruitnrf52/cores/nRF5/linker \
+# -Wl,--start-group .pio/build/default/libFrameworkArduinoVariant.a \
+# .pio/build/default/libFrameworkArduino.a -lm -Wl,--end-group

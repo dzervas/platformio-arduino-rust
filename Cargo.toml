@@ -5,16 +5,12 @@ readme = "README.md"
 name = "ardurust"
 version = "0.1.0"
 
-[dependencies]
-panic-halt = "*"
-# libc = { version = "0.2.71", default-features = false }
-
-[build-dependencies]
-bindgen = "*"
+# [build-dependencies]
+# bindgen = "*"
 
 [lib]
 name = "ardurust"
-crate-type = ["lib"]
+crate-type = ["staticlib"]
 
 # this lets you use `cargo fix`!
 # [[bin]]
