@@ -17,16 +17,13 @@ def ignore_main_cpp(node):
 
 	headers += toolchain_headers + " "
 
-	# defines_list = [val[0] + "=" + str(val[1]) for val in env.get("CPPDEFINES", [])]
-	# defines_list = list(set(defines_list))
-	# defines = f' -D{" -D".join(defines_list)}'
-	defines = env.subst(env.get("_CPPDEFFLAGS"))
+	defines = env.subst(env.get("_CPPDEFFLAGS")).replace("\\\"", "\"")
 
 	# -target should reflect cargo's target. Ex. thumbv7m-none-eabi becomes armv7m while thumbv7m-none-eabihf becomes armv7em
 	# Floating point does not make a difference in target in clang, but it does in -mfloat-abi
 	# -mfloat-abi=soft for software and hard for hardware. There's also softfp (?)
-				#    --blacklist-item std::* \
 	env.Execute("""bindgen --ctypes-prefix pio_rust --use-core \
+				   --blacklist-item std::* \
 				   --blacklist-item FP_NAN \
 				   --blacklist-item FP_INFINITE \
 				   --blacklist-item FP_ZERO \
@@ -37,9 +34,8 @@ def ignore_main_cpp(node):
 				   --blacklist-function loop \
 				   -o src/platformio.rs \
 				   /home/dzervas/.platformio/packages/framework-arduinoadafruitnrf52/cores/nRF5/Arduino.h -- \
-				   -mfloat-abi=hard \
-				   -mthumb \
-				   -target armv7m """ + defines + " " + headers)
+				   -mfloat-abi=soft \
+				   -target armv7em """ + defines + " " + headers)
 
 	libraries_path = env.subst(env.get("_LIBDIRFLAGS"))
 
@@ -52,6 +48,6 @@ def ignore_main_cpp(node):
 
 	return node
 
-env.get("BUILDERS")["Cargo"] = Builder(action=env.VerboseAction("cargo build --release", "Cargo Building $TARGET"),
-									   suffix=".rs")
+# env.get("BUILDERS")["Cargo"] = Builder(action=env.VerboseAction("cargo build --release", "Cargo Building $TARGET"),
+									#    suffix=".rs")
 env.AddBuildMiddleware(ignore_main_cpp, "*src/main.cpp*")
