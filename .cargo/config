@@ -2,7 +2,6 @@
 rustflags = [
   "--emit", "obj",
   "-C", "soft-float=no",
-  "-C", "link-dead-code=yes",
   "-C", "extra-filename=-platformio",
   "-C", "default-linker-libraries=no",
 ]

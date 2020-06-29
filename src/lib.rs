@@ -1,15 +1,20 @@
 #![feature(lang_items)]
 #![no_std]
-#![allow(dead_code)]
+#![allow(non_upper_case_globals)]
 #![allow(non_snake_case)]
 #![allow(non_camel_case_types)]
-#![allow(non_upper_case_globals)]
 
+#[allow(dead_code)]
 mod pio_rust;
 
-include!("platformio.rs");
+extern crate pio_include;
+use pio_include::pio_include;
+pio_include!("Arduino.h");
+
+// include!("platformio.rs");
 
 #[no_mangle]
+#[allow(dead_code)]
 pub extern "C" fn setup() {
     unsafe {
         pinMode(19, 1);
@@ -17,6 +22,7 @@ pub extern "C" fn setup() {
 }
 
 #[no_mangle]
+#[allow(dead_code)]
 pub extern "C" fn r#loop() {
     unsafe {
         digitalWrite(19, 1);
