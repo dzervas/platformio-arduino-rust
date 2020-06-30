@@ -61,29 +61,39 @@ def get_header_search_paths():
 
 	return search_paths
 
+def option_list(option):
+	result = []
+
+	if isinstance(option, list):
+		option = option[0]
+
+	result = option.split("\n")
+
+	if len(result) <= 1:
+		result = option.split(",")
+
+	result = [x.strip() for x in result]
+
+	return result
+
 
 def get_rust_headers():
 	# Parse rust_headers option from the config
 	try:
-		headers_to_process_str = CONFIG.get(env.subst("env:$PIOENV"), "rust_headers")
+		headers_to_process_str = CONFIG.get(env.subst("env:$PIOENV"), "rust_c_headers")
+		headers_to_process = option_list(headers_to_process_str)
 	except NoOptionError:
-		return []
+		headers_to_process = []
+		pass
 
-	if isinstance(headers_to_process_str, list):
-		headers_to_process_str = headers_to_process_str[0]
+	try:
+		cxx_headers_to_process_str = CONFIG.get(env.subst("env:$PIOENV"), "rust_cxx_headers")
+		cxx_headers_to_process = option_list(cxx_headers_to_process_str)
 
-	if not headers_to_process_str:
-		return []
+		headers_to_process.extend([x + "+" for x in cxx_headers_to_process])
+	except NoOptionError:
+		pass
 
-	headers_to_process = headers_to_process_str.split("\n")
-
-	if len(headers_to_process) <= 1:
-		headers_to_process = headers_to_process_str.split(",")
-
-	if not headers_to_process:
-		return []
-
-	headers_to_process = [x.strip() for x in headers_to_process]
 
 	print("Searching headers to generate bindings:", headers_to_process)
 
@@ -94,6 +104,9 @@ def get_rust_headers():
 	# Search for the header in the paths above
 	for header in headers_to_process:
 		found = False
+		cxx = (header[-1] == "+")
+		if cxx:
+			header = header[:-1]
 
 		for inc_path in search_paths:
 			inc_path = inc_path.strip()
@@ -103,6 +116,9 @@ def get_rust_headers():
 				name = header.replace("/", "_")
 				name = name.replace(".", "_")
 				name += ".rs"
+
+				if cxx:
+					name += "+"
 
 				headers_found[name] = header_path
 				found = True
@@ -119,12 +135,15 @@ def ignore_main_cpp(node):
 	sysroot = popen(env.subst("$CC -print-sysroot")).read().strip()
 	target = CONFIG.get(env.subst("env:$PIOENV"), "rust_target").strip()
 
+	env.Execute("mkdir -p $PROJECT_SRC_DIR/platformio")
 	mod_rs = open(env.subst("$PROJECT_SRC_DIR/platformio/mod.rs"), "w")
 	mod_rs.write(MOD_PRELUDE)
 
-	env.Execute("mkdir -p $PROJECT_SRC_DIR/platformio")
-
 	for name, h in get_rust_headers().items():
+		cxx = (name[-1] == "+")
+		if cxx:
+			name = name[:-1]
+
 		# -target should reflect cargo's target. Ex. thumbv7m-none-eabi becomes armv7m while thumbv7m-none-eabihf becomes armv7em
 		# Floating point does not make a difference in target in clang, but it does in -mfloat-abi
 		# -mfloat-abi=soft for software and hard for hardware. There's also softfp (?)
@@ -147,12 +166,13 @@ def ignore_main_cpp(node):
 					   --blacklist-function *printf_r \
 					   --blacklist-function *scanf \
 					   --blacklist-function *scanf_r \
+					   --blacklist-item random \
 					   --enable-function-attribute-detection \
 					   --no-derive-debug \
 					   --no-derive-copy \
 					   --conservative-inline-namespaces \
 					   -o $PROJECT_SRC_DIR/platformio/{name} \
-					   {header} -- -x c++ -std=gnu++11 \
+					   {header} -- {cxx} \
 					   -DCMAKE_CROSSCOMPILING=True \
 					   -DLLVM_DEFAULT_TARGET_TRIPLE={target} \
 					   -DCMAKE_C_FLAGS="$CCFLAGS" \
@@ -165,6 +185,7 @@ def ignore_main_cpp(node):
 					   -target {target}""" .format(
 						   name=name,
 						   header=h,
+						   cxx="-x c++" if cxx else "",
 						   sysroot=sysroot,
 						   target=target,
 						   defines=defines,
@@ -180,6 +201,12 @@ pub mod {name};
 """.format(name=name[:-3]))  # Remove .rs extension
 
 	mod_rs.close()
+
+	if "RUSTFLAGS" not in env.get("ENV"):
+		env.get("ENV")["RUSTFLAGS"] = ""
+
+	env.get("ENV")["RUSTFLAGS"] += "--emit obj -C extra-filename=-platformio -C default-linker-libraries=no"
+
 	env.Execute("cargo build --release -v --target=" + target)
 	env.Append(PIOBUILDFILES=["$PROJECT_DIR/target/" + target + "/release/deps/firmware-platformio.o"])
 

@@ -1,0 +1,15 @@
+[package]
+authors = ["Dimitris Zervas <dzervas@dzervas.gr>"]
+edition = "2018"
+readme = "README.md"
+name = "nordicnrf52-mbed"
+version = "0.1.0"
+
+[lib]
+name = "firmware"
+crate-type = ["staticlib"]
+
+[profile.release]
+codegen-units = 1 # better optimizations
+debug = false # symbols are nice and they don't increase the size on Flash
+lto = true # better optimizations
