@@ -14,6 +14,8 @@ MOD_PRELUDE = """
 #![allow(non_camel_case_types)]
 #![allow(non_snake_case)]
 #![allow(non_upper_case_globals)]
+#![allow(clippy::approx_constant)]
+#![allow(clippy::redundant_static_lifetimes)]
 
 pub type c_schar = i8;
 pub type c_uchar = u8;
