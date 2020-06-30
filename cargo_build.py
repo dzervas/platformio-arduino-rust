@@ -9,6 +9,8 @@ from SCons.Script import Builder
 # PlatformIO specific
 Import("env")
 
+CONFIG = ConfigParser()
+CONFIG.read(env.subst("$PROJECT_CONFIG"))
 MOD_PRELUDE = """
 #![allow(dead_code)]
 #![allow(non_camel_case_types)]
@@ -43,11 +45,8 @@ pub type c_void = core::ffi::c_void;
 """
 
 def get_rust_headers():
-	config = ConfigParser()
-	config.read(env.subst("$PROJECT_CONFIG"))
-
 	try:
-		headers_to_process_str = config.get(env.subst("env:$PIOENV"), "rust_headers")
+		headers_to_process_str = CONFIG.get(env.subst("env:$PIOENV"), "rust_headers")
 	except NoOptionError:
 		return []
 
@@ -95,6 +94,8 @@ def get_rust_headers():
 def ignore_main_cpp(node):
 	defines = env.subst("$_CPPDEFFLAGS").replace("\\\"", "\"")
 	sysroot = popen(env.subst("$CC -print-sysroot")).read().strip()
+	target = CONFIG.get(env.subst("env:$PIOENV"), "rust_target").strip()
+
 	mod_rs = open(env.subst("$PROJECT_SRC_DIR/platformio/mod.rs"), "w")
 	mod_rs.write(MOD_PRELUDE)
 
@@ -127,7 +128,7 @@ def ignore_main_cpp(node):
 						   name=name,
 						   header=h,
 						   sysroot=sysroot,
-						   target="thumbv7em-none-eabihf",
+						   target=target,
 						   defines=defines))
 
 		# As the preprocessor does not have any idea abut namespaces, we can re-export all the functions safely
@@ -137,8 +138,8 @@ pub use {name}::*;
 		""".format(name=name[:-3]))  # Remove .rs extension
 
 	mod_rs.close()
-	env.Execute("cargo build --release --target=thumbv7em-none-eabihf -v")
-	env.Append(PIOBUILDFILES=["$PROJECT_DIR/target/thumbv7em-none-eabihf/release/deps/firmware-platformio.o"])
+	env.Execute("cargo build --release -v --target=" + target)
+	env.Append(PIOBUILDFILES=["$PROJECT_DIR/target/" + target + "/release/deps/firmware-platformio.o"])
 
 	return None
 
