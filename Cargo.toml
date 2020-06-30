@@ -5,9 +5,6 @@ readme = "README.md"
 name = "ardurust"
 version = "0.1.0"
 
-[dependencies]
-pio_include = { version = "*", path = "pio_include" }
-
 [lib]
 name = "firmware"
 crate-type = ["staticlib"]
