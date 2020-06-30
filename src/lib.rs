@@ -2,7 +2,7 @@
 
 mod platformio;
 
-use platformio::{pinMode, digitalWrite, delay};
+use platformio::Arduino_h::{pinMode, digitalWrite, delay};
 
 #[no_mangle]
 pub extern "C" fn setup() {
