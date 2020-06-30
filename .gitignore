@@ -12,8 +12,7 @@ target/
 !.vscode/tasks.json
 !.vscode/extensions.json.vscode
 
-/src/platformio.rs
-/src/platformio
+**/src/platformio
 .cargo-ok
 .vscode
 .pio
