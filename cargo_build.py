@@ -168,8 +168,7 @@ def ignore_main_cpp(node):
 					   --blacklist-function *scanf_r \
 					   --blacklist-item random \
 					   --enable-function-attribute-detection \
-					   --no-derive-debug \
-					   --no-derive-copy \
+					   --with-derive-default \
 					   --conservative-inline-namespaces \
 					   -o $PROJECT_SRC_DIR/platformio/{name} \
 					   {header} -- {cxx} \
