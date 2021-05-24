@@ -1,3 +1,5 @@
+# I've unarchived the repo to enable the issues for further discussion :). The projects is still in a broken state and I don't see that changing 
+
 # PlatformIO Arduino Rust bindings
 
 This project serves as boilerplate for using the Arduino Framework
